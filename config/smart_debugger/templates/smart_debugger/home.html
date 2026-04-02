@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart API Debugger</title>
+    <link rel="stylesheet" href="{% static 'smart_debugger/css/style.css' %}">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- TITLE -->
+    <h1>🚀 Smart API Debugger</h1>
+    <p style="text-align:center;color:#666;">
+        Debug APIs, detect errors, and find solutions instantly
+    </p>
+
+    <!-- FORM -->
+    <form id="apiForm" method="POST">
+        {% csrf_token %}
+        <input type="text" name="api_url" placeholder="Enter API URL" required>
+
+        <select name="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+        </select>
+
+        <button type="submit">Check API</button>
+    </form>
+
+    <!-- LOADER -->
+    <div id="loader" style="display:none;">
+        ⏳ Checking API... Please wait
+    </div>
+
+    <!-- ERROR / RESULT -->
+    {% if root_cause %}
+    <div class="result">
+        <h3>⚠️ Error Analysis</h3>
+        <p><b>Error:</b> {{ root_cause }}</p>
+        <p><b>Solution:</b> {{ solution }}</p>
+    </div>
+    {% endif %}
+
+    <!-- RESPONSE -->
+    {% if response %}
+    <div class="response">
+        <h3>✅ API Response</h3>
+        <pre>{{ response }}</pre>
+    </div>
+    {% endif %}
+
+    <!-- DASHBOARD -->
+    <div class="dashboard">
+        <div class="card">
+            <h3>Total APIs</h3>
+            <p>{{ total }}</p>
+        </div>
+        <div class="card">
+            <h3>Success</h3>
+            <p>{{ success }}</p>
+        </div>
+        <div class="card">
+            <h3>Failures</h3>
+            <p>{{ failure }}</p>
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <input type="text" id="searchBox" placeholder="🔍 Search API history..." style="margin-top:20px; width:100%; padding:10px;">
+
+    <!-- HISTORY TABLE -->
+    <table>
+        <tr>
+            <th>URL</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>Retry</th>
+        </tr>
+
+        {% for req in history %}
+        <tr>
+            <td>{{ req.url }}</td>
+            <td>{{ req.method }}</td>
+
+            <td>
+                {% if req.apiresult.error %}
+                    <span class="error">Failed</span>
+                {% else %}
+                    <span class="success">Success</span>
+                {% endif %}
+            </td>
+
+            <td>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="api_url" value="{{ req.url }}">
+                    <input type="hidden" name="method" value="{{ req.method }}">
+                    <button type="submit">Retry</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- DOWNLOAD -->
+    <div style="text-align:center; margin-top:20px;">
+        <a href="/download/" style="text-decoration:none; color:#667eea; font-weight:bold;">
+            ⬇️ Download Logs
+        </a>
+    </div>
+
+</div>
+
+<!-- JS -->
+<script src="{% static 'smart_debugger/js/script.js' %}"></script>
+
+</body>
+</html>

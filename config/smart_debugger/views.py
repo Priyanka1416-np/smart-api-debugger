@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 import requests, json, csv
-from .models import APIRequest, APIResult
+import csv
+from .models import APIRequest
 
 
 def home(request):
@@ -78,13 +79,24 @@ def home(request):
 
 def download_logs(request):
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="logs.csv"'
+    response['Content-Disposition'] = 'attachment; filename="api_logs.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['URL', 'Method', 'Error', 'Solution'])
+    writer.writerow(['URL', 'Method', 'Status', 'Timestamp'])
 
-    for req in APIRequest.objects.all():
-        result = req.apiresult
-        writer.writerow([req.url, req.method, result.error, result.solution])
+    logs = APIRequest.objects.all()
+
+    for log in logs:
+        try:
+            status = "Failed" if log.apiresult.error else "Success"
+        except:
+            status = "Unknown"
+
+        writer.writerow([
+            log.url,
+            log.method,
+            status,
+            log.timestamp
+        ])
 
     return response
